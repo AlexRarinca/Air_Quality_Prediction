@@ -83,13 +83,10 @@ def run_ml_validation(data_path, features, target_col, sheet_name=0, n_splits=5)
         remainder='passthrough' # Keep any other columns (e.g., IDs, if not explicitly removed)
     )
 
-    # 4. Define Models to Test
+    
+   # 4. Define Models to Test
     models = {
-        "Linear Regression": LinearRegression(),
-        "Decision Tree Regressor": DecisionTreeRegressor(random_state=42),
-        "Random Forest Regressor": RandomForestRegressor(n_estimators=100, random_state=42),
-        "K-Nearest Neighbors Regressor": KNeighborsRegressor(),
-        "Support Vector Regressor (SVR)": SVR(kernel='linear')
+        "Random Forest Regressor": RandomForestRegressor(n_estimators=100, random_state=42)
     }
 
     # 5. Run Cross-Validation and Report Results
@@ -160,14 +157,17 @@ if __name__ == '__main__':
 
     # 4. **MANDATORY:** Update this list with ALL the column names you want to use as features (inputs) for prediction.
     FEATURE_COLUMNS = [
-        #'StationId',
+        
         'Date'
-        #'O3'
-        # 'City',
-        # 'Credit_Score',
-        # 'Is_Customer_Active'
-        # Add all relevant column names from your Excel file here
-        # Example: 'Engine_Size', 'Mileage', 'Customer_Segment'
+        'StationId' 
+        'PM2.5'	
+        'PM10'	
+        'NO'	
+        'NO2'	
+        'NOx'	
+        'NH3'
+        'CO'
+        'SO2'
     ]
 
 
@@ -177,3 +177,4 @@ if __name__ == '__main__':
         features=FEATURE_COLUMNS,
         target_col=TARGET_COLUMN
     )
+
