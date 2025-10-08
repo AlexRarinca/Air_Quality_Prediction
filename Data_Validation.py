@@ -7,11 +7,9 @@ from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt # Added for plotting
 
 # Classification Models to Test
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.svm import SVR
-from sklearn.neighbors import KNeighborsRegressor
+from xgboost import XGBRegressor
 
 def load_data(file_path, sheet_name=0):
     """Loads data from an Excel file."""
@@ -83,10 +81,12 @@ def run_ml_validation(data_path, features, target_col, sheet_name=0, n_splits=5)
         remainder='passthrough' # Keep any other columns (e.g., IDs, if not explicitly removed)
     )
 
-    
-   # 4. Define Models to Test
+    # 4. Define Models to Test
     models = {
-        "Random Forest Regressor": RandomForestRegressor(n_estimators=100, random_state=42)
+        "Random Forest Regressor": RandomForestRegressor(n_estimators=100, random_state=42),
+        "Gradient Boosting Regressor": GradientBoostingRegressor(n_estimators=100, random_state=42),
+        "Support Vector Regressor (SVR)": SVR(kernel='linear'),
+        "XGBoost Regressor": XGBRegressor(n_estimators=100, random_state=42, verbosity=0)
     }
 
     # 5. Run Cross-Validation and Report Results
@@ -99,18 +99,17 @@ def run_ml_validation(data_path, features, target_col, sheet_name=0, n_splits=5)
         # Create a final pipeline: Preprocessor -> Model
         full_pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', model)])
 
+        # Calculate cross-validation scores (using 'r2' as the default metric for regression)
+        scores = cross_val_score(full_pipeline, X, y, cv=cv, scoring='r2', n_jobs=-1, error_score='raise')
 
-    # Calculate cross-validation scores (using 'r2' as the default metric for regression)
-    scores = cross_val_score(full_pipeline, X, y, cv=cv, scoring='r2', n_jobs=-1)
+        mean_score = scores.mean()
+        std_dev = scores.std()
 
-    mean_score = scores.mean()
-    std_dev = scores.std()
+        results[name] = {'Mean R^2 Score': mean_score, 'Std Dev': std_dev}
 
-    results[name] = {'Mean R^2 Score': mean_score, 'Std Dev': std_dev}
-
-    print(f"\nModel: {name}")
-    print(f"  Validation Scores: {scores}")
-    print(f"  Mean R^2 Score: {mean_score:.4f} (±{std_dev:.4f})")
+        print(f"\nModel: {name}")
+        print(f"  Validation Scores: {scores}")
+        print(f"  Mean R^2 Score: {mean_score:.4f} (±{std_dev:.4f})")
 
     print("\n==================================================")
     print("      Summary of Model Validation Results         ")
@@ -152,22 +151,22 @@ if __name__ == '__main__':
     # 2. Update this to the name or index of the sheet containing your data.
     SHEET_NAME = 'station_day'  
     
-    # 3. **MANDATORY:** Update this to the name of the column you want to predict (e.g., 'Target_Variable', 'Success_Flag', 'Price').
+    # 3. **MANDATORY:** Update this to the name of the column you want to predict 
     TARGET_COLUMN = 'O3' 
 
     # 4. **MANDATORY:** Update this list with ALL the column names you want to use as features (inputs) for prediction.
     FEATURE_COLUMNS = [
-        
-        'Date'
-        'StationId' 
-        'PM2.5'	
-        'PM10'	
-        'NO'	
-        'NO2'	
-        'NOx'	
-        'NH3'
-        'CO'
+        #'Date',
+        #'StationId',
+        'PM2.5',	
+        'PM10',	
+        'NO',	
+        'NO2',	
+        'NOx',	
+        'NH3',
+        'CO',	
         'SO2'
+
     ]
 
 
@@ -177,4 +176,5 @@ if __name__ == '__main__':
         features=FEATURE_COLUMNS,
         target_col=TARGET_COLUMN
     )
+
 
