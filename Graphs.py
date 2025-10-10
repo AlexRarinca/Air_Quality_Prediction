@@ -263,4 +263,5 @@ axes[1].set_ylabel('State', fontsize=12)
 
 
 plt.tight_layout()
+
 plt.show()
