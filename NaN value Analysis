@@ -1,0 +1,114 @@
+import pandas as pd
+
+st = pd.read_csv('stations.csv', low_memory=False)
+st_hour = pd.read_csv('station_hour.csv', low_memory=False)
+
+for df in (st, st_hour):
+    if 'StationId' in df.columns:
+        df['StationId'] = df['StationId'].astype(str).str.strip()
+    if 'City' in df.columns:
+        df['City'] = df['City'].astype(str).str.strip()
+
+st_hour['datetime'] = pd.to_datetime(st_hour['Datetime'], errors='coerce')
+st_hour = st_hour.drop(columns=['Datetime'])
+st_hour = st_hour.drop(columns=[c for c in ['Benzene','Toluene','Xylene'] if c in st_hour.columns], errors='ignore')
+
+panel = st_hour.merge(
+    st[['StationId','StationName','City','State','Status']],
+    on='StationId', how='left', validate='many_to_one'
+)
+
+polls = ['PM2.5','PM10','NO','NO2','NOx','NH3','CO','SO2','O3','AQI']
+for c in polls:
+    if c in panel.columns:
+        panel[c] = pd.to_numeric(panel[c], errors='coerce')
+
+if {'StationId','datetime'}.issubset(panel.columns):
+    panel = panel.drop_duplicates(subset=['StationId','datetime'])
+
+front = ['datetime','StationId','StationName','City','State','Status']
+meas  = ['PM2.5','PM10','NO','NO2','NOx','NH3','CO','SO2','O3','AQI','AQI_Bucket']
+ordered = [c for c in front if c in panel.columns] + [c for c in meas if c in panel.columns] + [c for c in panel.columns if c not in set(front+meas)]
+panel = panel[ordered]
+
+panel.to_parquet('India_complete.parquet', index=False, compression='zstd')
+panel.to_csv('India_complete.csv', index=False)
+
+
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+India = pd.read_csv('India_complete.csv')
+
+# Keep only pollutant-related columns
+polls = ['PM2.5','PM10','NO','NO2','NOx','NH3','CO','SO2','O3','AQI']
+
+
+miss_pct = {}
+for c in polls:
+    total_valid = India[c].notna().sum() + India[c].isna().sum()  
+    miss_pct[c] = (India[c].isna().sum() / total_valid) * 100
+
+miss_pct = pd.Series(miss_pct).sort_values(ascending=False)
+print(" Accurate Missing Percentage by Pollutant (%):\n", miss_pct)
+
+plt.figure(figsize=(10,5))
+sns.barplot(x=miss_pct.index, y=miss_pct.values, color='seagreen')
+plt.title("Accurate Missing Percentage by Pollutant (%)", fontsize=14, fontweight='bold')
+plt.ylabel("Missing Percentage (%)")
+plt.xlabel("Pollutant")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+#--------------------------------------------------------------------------------------------------------------------------------
+# Calculate missing rate by city
+
+city_miss = India.groupby('City')[polls].apply(lambda x: x.isnull().mean() * 100)
+city_miss_mean = city_miss.mean(axis=1).sort_values(ascending=False)
+
+plt.figure(figsize=(12,6))
+city_miss_mean.plot(kind='bar', color='salmon')
+plt.title("Average Missing Rate by City (%)")
+plt.ylabel("Missing Percentage (%)")
+plt.xlabel("City")
+plt.show()
+
+print(" top 10 Cities with Highest Missing Rates:")
+print(city_miss_mean.head(10))
+print('--------------------------------------------------------------------------------------------------------------------------------')
+
+
+#  Calculate missing rate by monitoring station
+
+station_miss = India.groupby('StationName')[polls].apply(lambda x: x.isnull().mean() * 100)
+station_miss['Average'] = station_miss.mean(axis=1)
+station_miss = station_miss.sort_values('Average', ascending=False)
+
+print("\n top 10 Monitoring Stations with Highest Missing Rates:")
+print(station_miss.head(20))
+
+print('--------------------------------------------------------------------------------------------------------------------------------')
+# Heatmap: City vs Pollutant Missing Rate
+
+plt.figure(figsize=(12,8))
+sns.heatmap(
+    city_miss,
+    cmap='YlGnBu',       
+    linewidths=0.3,       
+    linecolor='white',
+    cbar_kws={'label': 'Missing Rate (%)'},
+    annot=True,             
+    fmt=".1f",            
+    annot_kws={'size':8, 'color':'black'} 
+)
+
+plt.title("City vs Pollutant Missing Rate Heatmap", fontsize=16, fontweight='bold', pad=12)
+plt.xlabel("Pollutant", fontsize=12)
+plt.ylabel("City", fontsize=12)
+plt.xticks(rotation=45, ha='right')
+plt.yticks(fontsize=9)
+plt.tight_layout()
+plt.show()
