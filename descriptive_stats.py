@@ -9,7 +9,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
 
 # Load dataset
-df = pd.read_csv("India_complete.csv")
+df = pd.read_csv("data/India_complete.csv")
 
 # Parse datetime
 df['datetime'] = pd.to_datetime(df['datetime'])

@@ -2,9 +2,9 @@ import pandas as pd
 
 
 
-st = pd.read_csv("C:\\Users\\angus\\MDM3\\Air_Quality_Prediction\\stations_with_coords.csv", low_memory=False)
+st = pd.read_csv("C:\\Users\\angus\\MDM3\\Air_Quality_Prediction\\data\\stations_with_coords.csv", low_memory=False)
 
-st_hour = pd.read_csv('C:\\Users\\angus\\MDM3\\Air_Quality_Prediction\\station_day.csv', low_memory=False)
+st_hour = pd.read_csv('C:\\Users\\angus\\MDM3\\Air_Quality_Prediction\\data\\station_day.csv', low_memory=False)
 
 for df in (st, st_hour):
     if 'StationId' in df.columns:
