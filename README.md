@@ -6,7 +6,7 @@ This repository contains the code and data for a the primary goal predicting (vi
 
 - **Data Cleaning:** Merging station data, handling missing values, and mapping station locations.
 - **Exploratory Analysis:** Visualizing pollutant distributions, identifying trends over time, and analyzing correlations.
-- **Predictive Modeling:** Building and evaluating several regression models to forecast air quality (all final modelling used in air_quality_all - final notebook.
+- **Predictive Modeling:** Building and evaluating several regression models to forecast air quality (all final modelling used in air_quality_all - final notebook).
 
 Data Sources: Kaggle dataset from the India Central Pollution Control Board [https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india] and ECMWF Reanalysis v5 (ERA5) [https://cds.climate.copernicus.eu/datasets/derived-near-surface-meteorological-variables?tab=overview]
 
